@@ -1,0 +1,14 @@
+; {{ ansible_managed }}
+
+[system_instance]
+id = {{ fact_bas_systems_inventory_system_instance.results.0.item.id }}
+environment = {{ fact_bas_systems_inventory_system_instance.results.0.item.environment }}
+
+[compute_resource]
+id = {{ fact_bas_systems_inventory_system_instance_compute_resource_updated.json.id }}
+
+provider = {{ fact_bas_systems_inventory_system_instance_compute_resource_updated.json.provider }}
+manager = {{ fact_bas_systems_inventory_system_instance_compute_resource_updated.json.manager }}
+
+system_image_name = {{ fact_bas_systems_inventory_system_instance_compute_resource_updated.json.system_image.id }}
+system_image_version = {{ fact_bas_systems_inventory_system_instance_compute_resource_updated.json.system_image.version }}

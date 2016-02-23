@@ -1,0 +1,12 @@
+---
+# defaults file for antarctca.bas-systems-inventory
+
+bas_systems_inventory_host_details:
+  hostname: "{{ ansible_hostname }}"
+  fqdn: "{{ ansible_fqdn }}"
+  cpu_cores: "{{ ansible_processor_cores }}"
+  ram: "{{ ansible_memtotal_mb }}"
+  os_template_name: "{{ ansible_local.os_template.general.name | default('NULL')}}"
+  os_template_version: "{{ ansible_local.os_template.general.version | default('NULL') }}"
+  groups: "{{ group_names }}"
+  local_facts: "{{ ansible_local }}"

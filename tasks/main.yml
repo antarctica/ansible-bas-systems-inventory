@@ -1,0 +1,90 @@
+---
+# tasks file for antarctca.bas-systems-inventory
+
+- name: install python dependencies for Ansible URI module - Ubuntu
+  apt:
+                 pkg={{ item }}
+        update_cache=yes
+    cache_valid_time=3600
+               state=present
+  with_items:
+    - python-httplib2
+  when: ansible_distribution == "Ubuntu"
+
+- include: setup-epel-repository.yml
+  when: ansible_distribution == "CentOS"
+
+- name: install python dependencies for Ansible URI module - CentOS
+  yum:
+             pkg={{ item }}
+    update_cache=yes
+           state=present
+  with_items:
+  - python-httplib2
+  when: ansible_distribution == "CentOS"
+
+- name: get instances of the system for this project from the BAS Systems Inventory API - FAKED!
+  uri:
+    # url="https://api.bas.ac.uk/systems-inventory/v0/system/{{ bas_systems_inventory_system_reference }}/instances"
+    url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/systems/{{ bas_systems_inventory_system_reference }}/GET-instances.json"
+  register: fact_bas_systems_inventory_system_instances
+
+- name: determine which instance of the system for this project is relevant to this host
+  command: "echo {{ item.id }}"
+  when: item.environment == bas_systems_inventory_instance_environment
+  with_items: fact_bas_systems_inventory_system_instances.json
+  register: fact_bas_systems_inventory_system_instance
+  changed_when: false
+
+- name: lookup compute resource for the system instance for this project from the BAS Systems Inventory API by FQDN - FAKED!
+  uri:
+    # url="https://api.bas.ac.uk/systems-inventory/v0/instances/{{ fact_bas_systems_inventory_system_instance.results.0.item.id }}/compute/source/ansible/{{ ansible_fqdn }}"
+    url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/instances/{{ fact_bas_systems_inventory_system_instance.results.0.item.id }}/compute/source/ansible/GET-{{ ansible_fqdn }}.json"
+  register: fact_bas_systems_inventory_system_instance_compute_resource_id
+
+- name: get details for the identified compute resource which represents this host from the BAS Systems Inventory - FAKED!
+  uri:
+    #url="https://api.bas.ac.uk/systems-inventory/v0/compute/{{ fact_bas_systems_inventory_system_instance_compute_resource_id.json.id }}/sources/ansible"
+    url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/compute/{{ fact_bas_systems_inventory_system_instance_compute_resource_id.json.id }}/source/GET-ansible.json"
+  register: fact_bas_systems_inventory_system_instance_compute_resource
+
+- name: update details for the identified compute resource representing this host in the BAS Systems Inventory - FAKED!
+  uri:
+    url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/compute/{{ fact_bas_systems_inventory_system_instance_compute_resource_id.json.id }}/source/GET-ansible.json"
+  register: fact_bas_systems_inventory_system_instance_compute_resource_updated
+
+- name: ensure ansible local facts directory exists
+  file:
+     path=/etc/ansible/facts.d
+    state=directory
+
+- name: register local facts for information about this host from the compute resource and system instance
+  template:
+     src=etc/ansible/facts.d/bas_systems_inventory.fact.j2
+    dest="/etc/ansible/facts.d/bas_systems_inventory.fact"
+
+# Refreshes local facts
+- action: setup
+
+# The update details for the identified compute resource representing this host in the BAS Systems Inventory task can
+# be modified to simulate different situations:
+#
+# Real values:
+#       url="https://api.bas.ac.uk/systems-inventory/compute/{{ fact_bas_systems_inventory_system_instance_compute_resource.json }}/source/ansible"
+#       method=PUT
+#       HEADER_Content-Type="application/json"
+#       body="{{ bas_systems_inventory_host_details | to_json }}"
+#
+# To simulate getting updated information:
+#       url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/compute/{{ fact_bas_systems_inventory_system_instance_compute_resource_id.json.id }}/source/PUT-ansible.json"
+#       method=GET
+#
+# To simulate getting un-modified information:
+#       url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/compute/GET-{{ fact_bas_systems_inventory_system_instance_compute_resource_id.json.id }}.json"
+#       method=GET
+#
+# To check Ansible posts the relevant information:
+#       url=http://requestb.in/1fwdaek1
+#       method=POST
+#       HEADER_Content-Type="application/json"
+#       body="{{ bas_systems_inventory_host_details | to_json }}"
