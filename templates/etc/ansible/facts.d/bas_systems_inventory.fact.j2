@@ -1,8 +1,8 @@
 ; {{ ansible_managed }}
 
 [system_instance]
-id = {{ fact_bas_systems_inventory_system_instance.results.0.item.id }}
-environment = {{ fact_bas_systems_inventory_system_instance.results.0.item.environment }}
+id = {{ fact_bas_systems_inventory_system_instance.json.id }}
+environment = {{ fact_bas_systems_inventory_system_instance.json.environment }}
 
 [compute_resource]
 id = {{ fact_bas_systems_inventory_system_instance_compute_resource_updated.json.id }}
