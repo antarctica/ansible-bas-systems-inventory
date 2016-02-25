@@ -23,23 +23,24 @@
   - python-httplib2
   when: ansible_distribution == "CentOS"
 
-- name: get instances of the system for this project from the BAS Systems Inventory API - FAKED!
+- name: lookup instance of the system for this project from the BAS Systems Inventory API - FAKED!
   uri:
-    # url="https://api.bas.ac.uk/systems-inventory/v0/system/{{ bas_systems_inventory_system_reference }}/instances"
-    url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/systems/{{ bas_systems_inventory_system_reference }}/GET-instances.json"
-  register: fact_bas_systems_inventory_system_instances
+    # url="https://api.bas.ac.uk/systems-inventory/v0/system/{{ bas_systems_inventory_system_reference }}/instances/source/ansible/{{ bas_systems_inventory_instance_environment }}"
+    url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/systems/{{ bas_systems_inventory_system_reference }}/instances/source/ansible/GET-{{ bas_systems_inventory_instance_environment }}.json"
+  register: fact_bas_systems_inventory_system_instance_id
 
-- name: determine which instance of the system for this project is relevant to this host
-  command: "echo {{ item.id }}"
-  when: item.environment == bas_systems_inventory_instance_environment
-  with_items: fact_bas_systems_inventory_system_instances.json
+- debug: var=fact_bas_systems_inventory_system_instance_id.json.id
+
+- name: get details for the identified compute resource which represents this host from the BAS Systems Inventory - FAKED!
+  uri:
+    #url="https://api.bas.ac.uk/systems-inventory/v0/instances/{{ fact_bas_systems_inventory_system_instance_id.json.id }}"
+    url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/instances/GET-{{ fact_bas_systems_inventory_system_instance_id.json.id }}.json"
   register: fact_bas_systems_inventory_system_instance
-  changed_when: false
 
 - name: lookup compute resource for the system instance for this project from the BAS Systems Inventory API by FQDN - FAKED!
   uri:
-    # url="https://api.bas.ac.uk/systems-inventory/v0/instances/{{ fact_bas_systems_inventory_system_instance.results.0.item.id }}/compute/source/ansible/{{ ansible_fqdn }}"
-    url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/instances/{{ fact_bas_systems_inventory_system_instance.results.0.item.id }}/compute/source/ansible/GET-{{ ansible_fqdn }}.json"
+    # url="https://api.bas.ac.uk/systems-inventory/v0/instances/{{ fact_bas_systems_inventory_system_instance_id.json.id }}/compute/source/ansible/{{ ansible_fqdn }}"
+    url="https://s3-eu-west-1.amazonaws.com/bas-cdn-dev/scratch/api.bas.ac.uk/systems-inventory/v0/instances/{{ fact_bas_systems_inventory_system_instance_id.json.id }}/compute/source/ansible/GET-{{ ansible_fqdn }}.json"
   register: fact_bas_systems_inventory_system_instance_compute_resource_id
 
 - name: get details for the identified compute resource which represents this host from the BAS Systems Inventory - FAKED!
