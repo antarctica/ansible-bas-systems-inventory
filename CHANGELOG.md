@@ -5,6 +5,10 @@ This role adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased][unreleased]
 
+### Fixed
+
+* Reloading facts before looking up host information for where the hostname has changed but the old value is cached
+
 ## 0.1.2 - 25/02/2016
 
 ### Fixed

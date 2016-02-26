@@ -23,6 +23,9 @@
   - python-httplib2
   when: ansible_distribution == "CentOS"
 
+# Refreshes local facts
+- action: setup
+
 - name: lookup instance of the system for this project from the BAS Systems Inventory API - FAKED!
   uri:
     # url="https://api.bas.ac.uk/systems-inventory/v0/system/{{ bas_systems_inventory_system_reference }}/instances/source/ansible/{{ bas_systems_inventory_instance_environment }}"
